@@ -59,11 +59,12 @@ GitHub Pages：將此檔放到 repo 根目錄（index.html）即可直接執行
     .stat .k{font-size:11px;color:var(--sub)}
     .stat .v{font-size:14px;font-weight:700;margin-top:2px}
 
-    .bar{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:6px;
-    }
+   .bar{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:6px;
+}
+
     button{
       height:42px;
       border-radius:10px;
@@ -237,9 +238,11 @@ GitHub Pages：將此檔放到 repo 根目錄（index.html）即可直接執行
     </section>
 
     <section class="bar">
-      <button id="undoBtn" type="button">上一步</button>
-      <button id="settingBtn" type="button">設定</button>
-    </section>
+  <button id="undoBtn" type="button">上一步</button>
+  <button id="restartBtn" type="button">新的一局</button>
+  <button id="settingBtn" type="button">設定</button>
+</section>
+
 
     <section class="panel board" id="board">
       <div class="grid" id="grid"></div>
@@ -1057,6 +1060,8 @@ GitHub Pages：將此檔放到 repo 根目錄（index.html）即可直接執行
           resultTitle: document.getElementById("resultTitle"),
           resultText: document.getElementById("resultText"),
           resultActionBtn: document.getElementById("resultActionBtn"),
+          restartBtn: document.getElementById("restartBtn"),
+
 
           fx: document.getElementById("fx")
         };
@@ -1095,6 +1100,19 @@ GitHub Pages：將此檔放到 repo 根目錄（index.html）即可直接執行
           app.settings.vibrate = app.el.vibrateChk.checked;
           saveGame();
         });
+        
+app.el.restartBtn.addEventListener("click", () => {
+  if (app.state.locked) return;
+  app.el.settingsModal.classList.remove("show");
+  app.el.resultModal.classList.remove("show");
+  app.state.status = "playing";
+  app.state.totalElapsed = 0;
+  app.undoStack = [];
+  localStorage.removeItem(STORAGE_KEY);
+  startLevel(0, null);
+  showToast("已開始新的一局");
+});
+
 
         app.el.resultActionBtn.addEventListener("click", () => {
           restartFromLevel1();
