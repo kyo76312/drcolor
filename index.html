@@ -1,1252 +1,650 @@
-<!--
-本機開啟：將此檔存成 index.html 後，直接雙擊用瀏覽器開啟即可（離線可玩）。
-GitHub Pages：把此檔放在 repo 根目錄命名為 index.html，啟用 Pages 後即可直接遊玩。
--->
 <!doctype html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Water Sort Puzzle - 單檔版</title>
+  <title>水排序 Water Sort</title>
   <style>
-    :root {
-      --bg0: #c5e7ff;
-      --bg1: #e7f3ff;
-      --card: rgba(255, 255, 255, 0.68);
-      --ink: #183046;
-      --sub: #3f5f78;
-      --accent: #2a9dff;
-      --good: #2bc58f;
-      --warn: #ef6b73;
-      --tube-glass: rgba(255, 255, 255, 0.35);
-      --tube-border: rgba(255, 255, 255, 0.72);
-      --tube-shadow: rgba(26, 56, 80, 0.26);
-      --grid-gap: 12px;
-      --cell-gap: 2px;
-      --btn: rgba(255, 255, 255, 0.7);
-      --btn-border: rgba(255, 255, 255, 0.9);
-      --muted: rgba(24, 48, 70, 0.24);
-      --highlight: #7dc9ff;
+    :root{
+      --bg:#14171e;
+      --panel:#1c2130;
+      --panel2:#232a3d;
+      --text:#f1f5ff;
+      --sub:#b9c4e3;
+      --accent:#7cc4ff;
+      --ok:#7df2b4;
+      --warn:#ff9aa3;
+      --tube-w:52px;
+      --tube-h:124px;
+      --gap:8px;
     }
-
-    body[data-theme="violet"] {
-      --bg0: #e8dcff;
-      --bg1: #faf4ff;
-      --card: rgba(255, 255, 255, 0.72);
-      --ink: #2e2348;
-      --sub: #5d4f80;
-      --accent: #8d6bff;
-      --good: #44bf8a;
-      --warn: #ef6f96;
-      --tube-shadow: rgba(58, 34, 91, 0.24);
-      --highlight: #c8a9ff;
-    }
-
-    body[data-theme="night"] {
-      --bg0: #0f1724;
-      --bg1: #1b2740;
-      --card: rgba(12, 22, 36, 0.62);
-      --ink: #e3eeff;
-      --sub: #a5bcda;
-      --accent: #61b8ff;
-      --good: #56d7a5;
-      --warn: #ff8d97;
-      --tube-glass: rgba(165, 199, 233, 0.14);
-      --tube-border: rgba(186, 220, 255, 0.34);
-      --tube-shadow: rgba(0, 0, 0, 0.35);
-      --btn: rgba(18, 34, 54, 0.68);
-      --btn-border: rgba(143, 182, 222, 0.35);
-      --muted: rgba(225, 239, 255, 0.24);
-      --highlight: #7cbfff;
-    }
-
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; height: 100%; }
-    body {
-      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-      color: var(--ink);
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif}
+    body{overflow:hidden}
+    .app{
+      height:100svh;
+      max-width:820px;
+      margin:0 auto;
+      display:grid;
+      grid-template-rows:auto auto 1fr;
+      gap:8px;
+      padding:8px 10px max(10px,env(safe-area-inset-bottom));
       background:
-        radial-gradient(1200px 700px at 10% -10%, rgba(255,255,255,0.55), transparent 60%),
-        radial-gradient(900px 600px at 100% 120%, rgba(100, 190, 255, 0.22), transparent 55%),
-        linear-gradient(155deg, var(--bg0), var(--bg1));
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      min-height: 100svh;
-      overflow: hidden;
-      touch-action: manipulation;
+        radial-gradient(600px 280px at 20% -5%, #2b3559 0%, transparent 55%),
+        radial-gradient(500px 280px at 100% 110%, #243c51 0%, transparent 50%),
+        var(--bg);
     }
-
-    .app {
-      width: min(100vw, 900px);
-      padding: max(10px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-      gap: 10px;
-      height: 100svh;
-      position: relative;
+    .top{
+      background:linear-gradient(180deg,var(--panel2),var(--panel));
+      border:1px solid #2a3350;
+      border-radius:14px;
+      padding:8px 10px;
     }
-
-    .panel {
-      background: var(--card);
-      border: 1px solid rgba(255,255,255,0.62);
-      backdrop-filter: blur(8px);
-      border-radius: 18px;
-      box-shadow: 0 10px 30px -16px var(--tube-shadow);
+    .title{font-size:18px;font-weight:800;letter-spacing:.4px;margin:0 0 6px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+    .stat{
+      border:1px solid #2e3858;
+      border-radius:10px;
+      padding:5px 4px;
+      text-align:center;
+      background:#171d2b;
     }
-
-    .topbar {
-      padding: 12px;
-      display: grid;
-      gap: 10px;
+    .stat .k{font-size:11px;color:var(--sub)}
+    .stat .v{font-size:14px;font-weight:700;margin-top:2px}
+    .bar{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:6px;
     }
-
-    .title {
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      font-size: clamp(18px, 4.6vw, 28px);
-      margin: 0;
+    button{
+      height:42px;
+      border-radius:10px;
+      border:1px solid #344064;
+      background:#202a43;
+      color:var(--text);
+      font-weight:700;
+      font-size:14px;
+      cursor:pointer;
     }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      font-size: 14px;
+    button:active{transform:scale(.98)}
+    .board{
+      background:linear-gradient(180deg,var(--panel),#171b28);
+      border:1px solid #2a3350;
+      border-radius:14px;
+      padding:8px;
+      overflow:hidden;
+      position:relative;
     }
-
-    .stat {
-      background: rgba(255,255,255,0.55);
-      border: 1px solid rgba(255,255,255,0.7);
-      border-radius: 12px;
-      padding: 8px;
-      text-align: center;
-      min-height: 54px;
+    .grid{
+      width:100%;
+      height:100%;
+      display:grid;
+      justify-content:center;
+      align-content:center;
+      gap:var(--gap);
+      touch-action:none;
     }
-
-    .stat .k { font-size: 12px; color: var(--sub); }
-    .stat .v { font-size: 17px; font-weight: 700; margin-top: 2px; }
-
-    .controls, .settings {
-      padding: 10px;
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+    .tube{
+      width:var(--tube-w);
+      height:var(--tube-h);
+      border:none;
+      padding:0;
+      background:none;
+      position:relative;
+      transform-origin:50% 88%;
+      transition:transform .22s cubic-bezier(.2,.8,.3,1.2), filter .2s;
+      cursor:pointer;
     }
+    .tube.sel{transform:translateY(-6px) scale(1.04); z-index:5}
+    .tube.can .shell{outline:2px solid #4ee39a55}
+    .tube.no{opacity:.38}
+    .tube.tiltL{transform:translateY(-6px) rotate(-25deg)}
+    .tube.tiltR{transform:translateY(-6px) rotate(25deg)}
+    .tube.hintFrom .shell,.tube.hintTo .shell{animation:pulse .9s ease 2}
+    @keyframes pulse{50%{box-shadow:0 0 0 2px #7cc4ff77,0 8px 18px #0008}}
+    .tube.shake{animation:shake .32s}
+    @keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-3px)}}
 
-    .settings {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      align-items: center;
+    .shell{
+      position:absolute;inset:0;
+      border-radius:14px 14px 10px 10px;
+      border:2px solid #b8d8ff66;
+      background:linear-gradient(155deg,#ffffff22,#9ec6ff10);
+      box-shadow:inset 0 0 0 1px #fff3,0 8px 18px #0007;
+      overflow:hidden;
     }
-
-    button, select, .toggle {
-      border: 1px solid var(--btn-border);
-      border-radius: 12px;
-      background: var(--btn);
-      color: var(--ink);
-      min-height: 44px;
-      padding: 8px 10px;
-      font-weight: 700;
-      font-size: 14px;
-      touch-action: manipulation;
+    .shell:before{
+      content:"";
+      position:absolute;left:8%;top:7%;width:22%;height:72%;
+      border-radius:999px;background:linear-gradient(180deg,#fff8,#fff0);
+      pointer-events:none;
     }
-
-    button {
-      cursor: pointer;
-      transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
-      box-shadow: 0 5px 18px -12px var(--tube-shadow);
+    .cells{
+      position:absolute;left:7px;right:7px;top:10px;bottom:7px;
+      display:grid;gap:2px;
     }
-    button:active { transform: scale(0.98); }
-    button.primary { background: linear-gradient(160deg, rgba(125, 201, 255, 0.52), rgba(255,255,255,0.85)); }
-    button.warn { border-color: rgba(239,107,115,0.65); }
-
-    .toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      font-weight: 700;
-      user-select: none;
+    .cell{border-radius:4px;background:transparent;overflow:hidden}
+    .cell.fill{
+      box-shadow:inset 0 1px 0 #fff7,inset 0 -4px 8px #0004;
+      animation:drop .22s ease;
     }
+    @keyframes drop{from{transform:translateY(-5px);opacity:.2}to{transform:none;opacity:1}}
 
-    .toggle input { width: 20px; height: 20px; }
-
-    .board-wrap {
-      padding: 10px;
-      overflow: auto;
-      overscroll-behavior: contain;
+    .toast{
+      position:absolute;left:50%;bottom:8px;transform:translateX(-50%);
+      background:#0f1320cc;color:#eaf2ff;border:1px solid #3a4769;
+      padding:6px 12px;border-radius:999px;font-size:12px;opacity:0;transition:.2s;
+      pointer-events:none
     }
+    .toast.show{opacity:1}
 
-    .tube-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
-      gap: var(--grid-gap);
-      align-items: end;
+    .modal{
+      position:fixed;inset:0;display:none;place-items:center;
+      background:#0008;z-index:99;padding:14px;
     }
-
-    .tube {
-      position: relative;
-      border: none;
-      background: none;
-      padding: 0;
-      min-height: 186px;
-      cursor: pointer;
-      touch-action: none;
-      transition: transform .24s cubic-bezier(.2,.85,.35,1.25), filter .2s ease;
-      transform-origin: 50% 86%;
+    .modal.show{display:grid}
+    .card{
+      width:min(92vw,420px);
+      background:linear-gradient(180deg,#1f2740,#161d2f);
+      border:1px solid #344064;border-radius:14px;padding:12px;
     }
-
-    .tube[aria-disabled="true"] { cursor: not-allowed; }
-
-    .tube-shell {
-      position: relative;
-      height: 172px;
-      border-radius: 20px 20px 14px 14px;
-      border: 2px solid var(--tube-border);
-      background: linear-gradient(160deg, var(--tube-glass), rgba(255,255,255,0.12));
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.35),
-        inset 8px 0 16px rgba(255,255,255,0.2),
-        0 10px 26px -16px var(--tube-shadow);
-      overflow: hidden;
-      backdrop-filter: blur(3px);
+    .card h3{margin:0 0 10px;font-size:16px}
+    .row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin:8px 0}
+    select,input[type="checkbox"]{font-size:14px}
+    select{
+      height:36px;border-radius:8px;border:1px solid #3a486e;background:#10182b;color:#eef4ff;padding:0 8px
     }
+    .card .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    #fx{position:fixed;inset:0;pointer-events:none;z-index:90}
 
-    .tube-shell::before {
-      content: "";
-      position: absolute;
-      inset: 8px auto 14px 8px;
-      width: 26%;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.12));
-      pointer-events: none;
-      z-index: 4;
-      filter: blur(0.3px);
-    }
-
-    .tube-shell::after {
-      content: "";
-      position: absolute;
-      left: 8px; right: 8px; top: 6px;
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.35);
-      z-index: 4;
-      pointer-events: none;
-    }
-
-    .cells {
-      position: absolute;
-      inset: 12px 8px 8px;
-      display: grid;
-      gap: var(--cell-gap);
-    }
-    .cell {
-      position: relative;
-      border-radius: 6px;
-      background: transparent;
-      overflow: hidden;
-    }
-
-    .cell.filled {
-      background: linear-gradient(180deg, color-mix(in oklab, var(--paint) 80%, #ffffff 20%), var(--paint));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -4px 8px rgba(0,0,0,0.08);
-      animation: popIn .24s ease;
-    }
-
-    .cell.filled.top::before {
-      content: "";
-      position: absolute;
-      left: 8%;
-      right: 8%;
-      top: 2px;
-      height: 3px;
-      border-radius: 99px;
-      background: rgba(255,255,255,0.46);
-    }
-
-    @keyframes popIn {
-      0% { transform: translateY(-6px) scaleY(0.8); opacity: 0; }
-      100% { transform: translateY(0) scaleY(1); opacity: 1; }
-    }
-
-    .tube.selected {
-      transform: translateY(-12px) scale(1.04);
-      z-index: 20;
-      filter: saturate(1.08);
-    }
-
-    .tube.selected .tube-shell {
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.55),
-        0 18px 34px -14px color-mix(in oklab, var(--accent), #000 26%);
-      border-color: color-mix(in oklab, var(--highlight), white 40%);
-    }
-
-    .tube.can-target .tube-shell {
-      border-color: color-mix(in oklab, var(--good), white 32%);
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.55),
-        0 14px 30px -14px color-mix(in oklab, var(--good), #000 38%);
-    }
-
-    .tube.cannot-target {
-      opacity: 0.46;
-      filter: grayscale(0.2);
-    }
-
-    .tube.shake { animation: shake .35s linear; }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-4px); }
-    }
-
-    .tube.tilt-left { transform: translateY(-12px) rotate(-27deg) scale(1.03); }
-    .tube.tilt-right { transform: translateY(-12px) rotate(27deg) scale(1.03); }
-
-    .tube.hint-from .tube-shell { animation: pulseFrom .9s ease 2; }
-    .tube.hint-to .tube-shell { animation: pulseTo .9s ease 2; }
-
-    @keyframes pulseFrom {
-      0%,100% { box-shadow: 0 10px 22px -16px var(--tube-shadow); }
-      50% { box-shadow: 0 16px 35px -14px color-mix(in oklab, var(--accent), #000 25%); }
-    }
-
-    @keyframes pulseTo {
-      0%,100% { box-shadow: 0 10px 22px -16px var(--tube-shadow); }
-      50% { box-shadow: 0 16px 35px -14px color-mix(in oklab, var(--good), #000 30%); }
-    }
-
-    .tube.drop-hover .tube-shell {
-      border-color: color-mix(in oklab, var(--good), white 38%);
-      transform: scale(1.02);
-    }
-
-    .drag-proxy {
-      position: fixed;
-      width: 78px;
-      height: 182px;
-      pointer-events: none;
-      z-index: 99;
-      opacity: 0.92;
-      transform: translate(-50%, -60%) rotate(-9deg);
-      filter: drop-shadow(0 18px 24px rgba(0,0,0,0.2));
-    }
-
-    .toast {
-      position: absolute;
-      left: 50%;
-      bottom: 14px;
-      transform: translateX(-50%) translateY(16px);
-      background: rgba(12, 26, 42, 0.8);
-      color: #eaf5ff;
-      padding: 8px 14px;
-      border-radius: 999px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .25s ease, transform .25s ease;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    #fxCanvas {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 60;
-    }
-
-    @media (min-width: 720px) {
-      .app { padding: 14px; gap: 12px; }
-      .controls { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-      .settings { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      .tube-grid { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); }
+    @media (max-width:380px){
+      .title{font-size:16px}
+      button{font-size:13px}
     }
   </style>
 </head>
-<body data-theme="ocean">
-  <canvas id="fxCanvas" aria-hidden="true"></canvas>
-  <div class="app">
-    <section class="panel topbar">
-      <h1 class="title">Water Sort Puzzle</h1>
-      <div class="stats">
-        <div class="stat"><div class="k">步數</div><div class="v" id="steps">0</div></div>
-        <div class="stat"><div class="k">時間</div><div class="v" id="time">00:00</div></div>
-        <div class="stat"><div class="k">難度</div><div class="v" id="difficultyText">Normal</div></div>
-        <div class="stat"><div class="k">關卡</div><div class="v" id="level">1</div></div>
-      </div>
-    </section>
-
-    <section class="panel controls">
-      <button id="newGameBtn" class="primary" type="button">新遊戲</button>
-      <button id="nextBtn" type="button">下一關</button>
-      <button id="undoBtn" type="button">上一步</button>
-      <button id="hintBtn" type="button">提示</button>
-      <button id="autoBtn" type="button">收尾</button>
-      <button id="resetBtn" class="warn" type="button">重置本關</button>
-    </section>
-
-    <section class="panel board-wrap">
-      <div id="tubeGrid" class="tube-grid" aria-label="試管盤面"></div>
-    </section>
-
-    <section class="panel settings">
-      <select id="difficultySelect" aria-label="難度">
-        <option value="easy">Easy</option>
-        <option value="normal" selected>Normal</option>
-        <option value="hard">Hard</option>
-      </select>
-      <select id="capacitySelect" aria-label="容量">
-        <option value="4" selected>容量 4</option>
-        <option value="5">容量 5</option>
-      </select>
-      <select id="themeSelect" aria-label="主題">
-        <option value="ocean" selected>藍玻璃</option>
-        <option value="violet">紫光</option>
-        <option value="night">夜幕</option>
-      </select>
-      <label class="toggle">音效 <input id="soundToggle" type="checkbox" checked /></label>
-      <label class="toggle">震動 <input id="vibrateToggle" type="checkbox" checked /></label>
-    </section>
-
-    <div class="toast" id="toast"></div>
+<body>
+<canvas id="fx"></canvas>
+<div class="app">
+  <div class="top">
+    <h1 class="title">水排序 Water Sort</h1>
+    <div class="stats">
+      <div class="stat"><div class="k">步數</div><div class="v" id="steps">0</div></div>
+      <div class="stat"><div class="k">時間</div><div class="v" id="time">00:00</div></div>
+      <div class="stat"><div class="k">難度</div><div class="v" id="diff">Normal</div></div>
+      <div class="stat"><div class="k">關卡</div><div class="v" id="level">1</div></div>
+    </div>
   </div>
 
-  <script>
-    (() => {
-      "use strict";
+  <div class="bar">
+    <button id="newBtn">新遊戲</button>
+    <button id="undoBtn">上一步</button>
+    <button id="hintBtn">提示</button>
+    <button id="setBtn">設定</button>
+  </div>
 
-      const STORAGE_KEY = "water_sort_single_file_v1";
-      const PALETTE = [
-        "#f26d6d", "#ff9f43", "#ffd166", "#95d05d", "#35c9a5",
-        "#4db8ff", "#6395ff", "#a68bff", "#d279ff", "#ff7fba",
-        "#b98a5a", "#89d3d8", "#ff6f91", "#83e377"
-      ];
+  <div class="board" id="board">
+    <div class="grid" id="grid"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
 
-      const App = {
-        state: {
-          tubes: [],
-          capacity: 4,
-          difficulty: "normal",
-          level: 1,
-          steps: 0,
-          elapsed: 0,
-          selected: null,
-          locked: false,
-          solved: false
-        },
-        settings: {
-          sound: true,
-          vibrate: true,
-          theme: "ocean"
-        },
-        undoStack: [],
-        timerId: null,
-        saveTick: 0,
-        initialLevelSnapshot: null,
-        hintPair: null,
-        drag: null,
-        audioCtx: null,
-        fx: {
-          canvas: null,
-          ctx: null,
-          particles: [],
-          running: false
-        },
-        el: {}
-      };
+<div class="modal" id="modal">
+  <div class="card">
+    <h3>設定</h3>
+    <div class="row"><span>難度</span><select id="diffSel"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option></select></div>
+    <div class="row"><span>容量</span><select id="capSel"><option value="4">4 層</option><option value="5">5 層</option></select></div>
+    <div class="row"><span>主題</span><select id="themeSel"><option value="dark">深色</option><option value="blue">藍色</option></select></div>
+    <div class="row"><span>音效</span><input id="soundChk" type="checkbox" checked></div>
+    <div class="row"><span>震動</span><input id="vibChk" type="checkbox" checked></div>
+    <div class="btns">
+      <button id="nextBtn">下一關</button>
+      <button id="autoBtn">收尾</button>
+      <button id="resetBtn">重置本關</button>
+      <button id="closeBtn">關閉</button>
+    </div>
+  </div>
+</div>
 
-      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-      const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+<script>
+(() => {
+  "use strict";
+  const KEY = "water_sort_clean_v2";
+  const PALETTE = ["#ff5f6d","#ff9f1c","#ffd166","#8ad85f","#2ec4b6","#4cc9f0","#5b8cff","#9d7dff","#f15bb5","#b08968","#7bdff2","#9ef01a"];
+  const App = {
+    state:{tubes:[],capacity:4,difficulty:"normal",level:1,steps:0,elapsed:0,selected:null,locked:false,solved:false},
+    settings:{sound:true,vibrate:true,theme:"dark"},
+    undo:[], initSnap:null, drag:null, hint:null, timer:null, ctx:null, fx:[], fxRun:false
+  };
+  const el = {
+    grid:document.getElementById("grid"), board:document.getElementById("board"),
+    steps:document.getElementById("steps"), time:document.getElementById("time"), diff:document.getElementById("diff"), level:document.getElementById("level"),
+    newBtn:document.getElementById("newBtn"), undoBtn:document.getElementById("undoBtn"), hintBtn:document.getElementById("hintBtn"), setBtn:document.getElementById("setBtn"),
+    modal:document.getElementById("modal"), closeBtn:document.getElementById("closeBtn"),
+    diffSel:document.getElementById("diffSel"), capSel:document.getElementById("capSel"), themeSel:document.getElementById("themeSel"),
+    soundChk:document.getElementById("soundChk"), vibChk:document.getElementById("vibChk"),
+    nextBtn:document.getElementById("nextBtn"), autoBtn:document.getElementById("autoBtn"), resetBtn:document.getElementById("resetBtn"),
+    toast:document.getElementById("toast"), fx:document.getElementById("fx")
+  };
 
-      function formatTime(sec) {
-        const m = Math.floor(sec / 60).toString().padStart(2, "0");
-        const s = (sec % 60).toString().padStart(2, "0");
-        return `${m}:${s}`;
-      }
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  const pick = a => a[Math.floor(Math.random()*a.length)];
+  const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+  const copyTubes = t => t.map(x=>x.slice());
+  const fmt = s => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+  const toast = (m)=>{ el.toast.textContent=m; el.toast.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.toast.classList.remove("show"),1200); };
+  const vib = (ms=12)=>{ if(App.settings.vibrate && navigator.vibrate) navigator.vibrate(ms); };
 
-      function deepCopyTubes(tubes) {
-        return tubes.map(t => t.slice());
-      }
-
-      function vibrate(ms = 12) {
-        if (!App.settings.vibrate || !navigator.vibrate) return;
-        navigator.vibrate(ms);
-      }
-
-      function showToast(text) {
-        const t = App.el.toast;
-        t.textContent = text;
-        t.classList.add("show");
-        clearTimeout(showToast._id);
-        showToast._id = setTimeout(() => t.classList.remove("show"), 1200);
-      }
-
-      function ensureAudio() {
-        if (App.audioCtx) return;
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!Ctx) return;
-        App.audioCtx = new Ctx();
-      }
-
-      async function unlockAudio() {
-        ensureAudio();
-        if (!App.audioCtx) return;
-        if (App.audioCtx.state === "suspended") {
-          try { await App.audioCtx.resume(); } catch (_) {}
-        }
-      }
-
-      function beep({ freq = 440, dur = 0.08, type = "sine", gain = 0.05, sweep = null }) {
-        if (!App.settings.sound || !App.audioCtx) return;
-        const ctx = App.audioCtx;
-        const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const g = ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, now);
-        if (sweep) osc.frequency.exponentialRampToValueAtTime(Math.max(40, sweep), now + dur);
-        g.gain.setValueAtTime(0.0001, now);
-        g.gain.exponentialRampToValueAtTime(gain, now + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-        osc.connect(g).connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + dur + 0.01);
-      }
-
-      function playSound(kind) {
-        if (!App.settings.sound || !App.audioCtx) return;
-        if (kind === "select") beep({ freq: 660, dur: 0.06, type: "triangle", gain: 0.045 });
-        if (kind === "pour") beep({ freq: 420, dur: 0.14, type: "sine", gain: 0.05, sweep: 260 });
-        if (kind === "invalid") beep({ freq: 180, dur: 0.08, type: "square", gain: 0.03 });
-        if (kind === "win") {
-          beep({ freq: 440, dur: 0.11, type: "triangle", gain: 0.045 });
-          setTimeout(() => beep({ freq: 550, dur: 0.11, type: "triangle", gain: 0.045 }), 90);
-          setTimeout(() => beep({ freq: 740, dur: 0.14, type: "triangle", gain: 0.05 }), 190);
-        }
-      }
-
-      function getTopRunLength(tube) {
-        if (!tube.length) return 0;
-        const top = tube[tube.length - 1];
-        let run = 1;
-        for (let i = tube.length - 2; i >= 0; i--) {
-          if (tube[i] !== top) break;
-          run++;
-        }
-        return run;
-      }
-
-      function canPourOn(tubes, capacity, fromIdx, toIdx) {
-        if (fromIdx === toIdx) return null;
-        const from = tubes[fromIdx];
-        const to = tubes[toIdx];
-        if (!from || !to || from.length === 0 || to.length >= capacity) return null;
-        const color = from[from.length - 1];
-        if (to.length > 0 && to[to.length - 1] !== color) return null;
-
-        const run = getTopRunLength(from);
-        const free = capacity - to.length;
-        const amount = Math.min(run, free);
-        if (amount <= 0) return null;
-
-        return { from: fromIdx, to: toIdx, color, amount };
-      }
-
-      function canPour(fromIdx, toIdx) {
-        return canPourOn(App.state.tubes, App.state.capacity, fromIdx, toIdx);
-      }
-
-      function doPourOn(tubes, capacity, fromIdx, toIdx) {
-        const info = canPourOn(tubes, capacity, fromIdx, toIdx);
-        if (!info) return null;
-        for (let i = 0; i < info.amount; i++) {
-          tubes[toIdx].push(tubes[fromIdx].pop());
-        }
-        return info;
-      }
-
-      function doPour(fromIdx, toIdx) {
-        return doPourOn(App.state.tubes, App.state.capacity, fromIdx, toIdx);
-      }
-
-      function undoMove(move) {
-        if (!move) return;
-        for (let i = 0; i < move.amount; i++) {
-          App.state.tubes[move.from].push(App.state.tubes[move.to].pop());
-        }
-      }
-
-      function isSolved(state = App.state.tubes) {
-        const cap = App.state.capacity;
-        for (const tube of state) {
-          if (tube.length === 0) continue;
-          if (tube.length !== cap) return false;
-          const c = tube[0];
-          for (let i = 1; i < tube.length; i++) if (tube[i] !== c) return false;
-        }
-        return true;
-      }
-
-      function difficultyConfig(difficulty, level, capacity) {
-        if (difficulty === "easy") {
-          return { colors: clamp(4 + Math.floor((level - 1) / 2), 4, 7), empties: 3, shuffle: clamp(220 + level * 24 + (capacity - 4) * 70, 220, 800) };
-        }
-        if (difficulty === "hard") {
-          return { colors: clamp(7 + Math.floor((level - 1) / 2), 7, 11), empties: 2, shuffle: clamp(620 + level * 46 + (capacity - 4) * 120, 620, 1400) };
-        }
-        return { colors: clamp(6 + Math.floor((level - 1) / 2), 6, 9), empties: 2, shuffle: clamp(380 + level * 34 + (capacity - 4) * 95, 380, 1100) };
-      }
-
-      function allLegalMoves(tubes, capacity) {
-        const moves = [];
-        for (let i = 0; i < tubes.length; i++) {
-          for (let j = 0; j < tubes.length; j++) {
-            const m = canPourOn(tubes, capacity, i, j);
-            if (m) moves.push(m);
-          }
-        }
-        return moves;
-      }
-
-      function generateLevel(difficulty) {
-  const cap = App.state.capacity;
-  const cfg = difficultyConfig(difficulty, App.state.level, cap);
-  const colors = Math.min(cfg.colors, PALETTE.length);
-
-  function buildSolved() {
-    const t = [];
-    for (let c = 0; c < colors; c++) t.push(Array(cap).fill(c));
-    for (let e = 0; e < cfg.empties; e++) t.push([]);
-    return t;
+  function audioInit(){ if(App.ctx) return; const A=window.AudioContext||window.webkitAudioContext; if(A) App.ctx=new A(); }
+  async function audioUnlock(){ audioInit(); if(App.ctx && App.ctx.state==="suspended"){ try{await App.ctx.resume();}catch(_){} } }
+  function beep(f=480,d=0.08,t="sine",g=0.04,f2=0){
+    if(!App.settings.sound||!App.ctx) return;
+    const c=App.ctx,n=c.currentTime,o=c.createOscillator(),a=c.createGain();
+    o.type=t;o.frequency.setValueAtTime(f,n); if(f2) o.frequency.exponentialRampToValueAtTime(Math.max(50,f2),n+d);
+    a.gain.setValueAtTime(0.0001,n); a.gain.exponentialRampToValueAtTime(g,n+0.01); a.gain.exponentialRampToValueAtTime(0.0001,n+d);
+    o.connect(a).connect(c.destination); o.start(n); o.stop(n+d+0.01);
   }
+  const sfx = k => { if(k==="sel")beep(680,.06,"triangle",.035); if(k==="pour")beep(430,.13,"sine",.04,260); if(k==="bad")beep(170,.08,"square",.025); if(k==="win"){beep(420,.09);setTimeout(()=>beep(560,.1),80);setTimeout(()=>beep(740,.12),170);} };
 
-  function topColor(tube) {
-    return tube.length ? tube[tube.length - 1] : null;
+  function getTopRunLength(tube){
+    if(!tube.length) return 0;
+    const c=tube[tube.length-1]; let n=1;
+    for(let i=tube.length-2;i>=0;i--){ if(tube[i]!==c) break; n++; }
+    return n;
   }
-
-  // 反向打亂：做「可逆拆分」(unpour)
-  // 規則：只從來源頂部同色連段搬 1~k 層到目標，且保留來源至少 1 層同色，
-  // 這樣反向時一定可用合法倒水還原。
-  function doReverseUnpour(tubes) {
-    const donorList = [];
-    for (let i = 0; i < tubes.length; i++) {
-      const run = getTopRunLength(tubes[i]);
-      if (run >= 2) donorList.push(i);
-    }
-    if (!donorList.length) return false;
-
-    const from = pick(donorList);
-    const color = topColor(tubes[from]);
-    const run = getTopRunLength(tubes[from]);
-
-    const targets = [];
-    for (let j = 0; j < tubes.length; j++) {
-      if (j === from) continue;
-      const to = tubes[j];
-      if (to.length >= cap) continue;
-      // 允許空管或異色，才能混色
-      if (to.length === 0 || topColor(to) !== color) targets.push(j);
-    }
-    if (!targets.length) return false;
-
-    const toIdx = pick(targets);
-    const free = cap - tubes[toIdx].length;
-    const maxAmount = Math.min(run - 1, free); // 留至少 1 層在來源
-    if (maxAmount <= 0) return false;
-
-    const amount = 1 + Math.floor(Math.random() * maxAmount);
-    for (let k = 0; k < amount; k++) {
-      tubes[toIdx].push(tubes[from].pop());
+  function canPourOn(tubes,cap,from,to){
+    if(from===to) return null;
+    const a=tubes[from], b=tubes[to];
+    if(!a?.length || b.length>=cap) return null;
+    const color=a[a.length-1];
+    if(b.length && b[b.length-1]!==color) return null;
+    const amount=Math.min(getTopRunLength(a),cap-b.length);
+    return amount>0?{from,to,color,amount}:null;
+  }
+  function canPour(from,to){ return canPourOn(App.state.tubes,App.state.capacity,from,to); }
+  function doPourOn(tubes,cap,from,to){
+    const m=canPourOn(tubes,cap,from,to); if(!m) return null;
+    for(let i=0;i<m.amount;i++) tubes[to].push(tubes[from].pop());
+    return m;
+  }
+  function doPour(from,to){ return doPourOn(App.state.tubes,App.state.capacity,from,to); }
+  function undoMove(m){ for(let i=0;i<m.amount;i++) App.state.tubes[m.from].push(App.state.tubes[m.to].pop()); }
+  function isSolved(state=App.state.tubes){
+    const cap=App.state.capacity;
+    for(const t of state){
+      if(!t.length) continue;
+      if(t.length!==cap) return false;
+      for(let i=1;i<t.length;i++) if(t[i]!==t[0]) return false;
     }
     return true;
   }
+  function legalMoves(tubes,cap){
+    const m=[]; for(let i=0;i<tubes.length;i++) for(let j=0;j<tubes.length;j++){ const x=canPourOn(tubes,cap,i,j); if(x) m.push(x); }
+    return m;
+  }
+  function diffCfg(d,l,cap){
+    if(d==="easy") return {colors:clamp(4+Math.floor((l-1)/2),4,7), empties:3, shuffle:clamp(180+l*22+(cap-4)*70,180,700)};
+    if(d==="hard") return {colors:clamp(7+Math.floor((l-1)/2),7,10), empties:2, shuffle:clamp(420+l*36+(cap-4)*110,420,1200)};
+    return {colors:clamp(6+Math.floor((l-1)/2),6,9), empties:2, shuffle:clamp(300+l*28+(cap-4)*90,300,950)};
+  }
 
-  // 多次嘗試，避免遞迴爆堆疊
-  for (let attempt = 0; attempt < 40; attempt++) {
-    const tubes = buildSolved();
+  function generateLevel(difficulty){
+    const cap=App.state.capacity, cfg=diffCfg(difficulty,App.state.level,cap), colors=Math.min(cfg.colors,PALETTE.length);
+    const buildSolved=()=>{ const t=[]; for(let c=0;c<colors;c++) t.push(Array(cap).fill(c)); for(let i=0;i<cfg.empties;i++) t.push([]); return t; };
+    const top=t=>t.length?t[t.length-1]:null;
 
-    let applied = 0;
-    let guard = cfg.shuffle * 30;
-    while (applied < cfg.shuffle && guard-- > 0) {
-      if (doReverseUnpour(tubes)) applied++;
+    function reverseUnpour(tubes){
+      const donors=[]; for(let i=0;i<tubes.length;i++) if(getTopRunLength(tubes[i])>=2) donors.push(i);
+      if(!donors.length) return false;
+      const from=pick(donors), col=top(tubes[from]), run=getTopRunLength(tubes[from]);
+      const targets=[];
+      for(let j=0;j<tubes.length;j++){
+        if(j===from) continue;
+        const to=tubes[j];
+        if(to.length>=cap) continue;
+        if(!to.length || top(to)!==col) targets.push(j);
+      }
+      if(!targets.length) return false;
+      const to=pick(targets), free=cap-tubes[to].length, max=Math.min(run-1,free);
+      if(max<=0) return false;
+      const amount=1+Math.floor(Math.random()*max);
+      for(let k=0;k<amount;k++) tubes[to].push(tubes[from].pop());
+      return true;
     }
 
-    // 條件：不是完成盤面，且至少有一步合法 move（玩家可動）
-    if (!isSolved(tubes) && allLegalMoves(tubes, cap).length > 0) {
-      return tubes;
+    for(let attempt=0;attempt<40;attempt++){
+      const tubes=buildSolved();
+      let n=0, guard=cfg.shuffle*30;
+      while(n<cfg.shuffle && guard-->0){ if(reverseUnpour(tubes)) n++; }
+      if(!isSolved(tubes) && legalMoves(tubes,cap).length) return tubes;
+    }
+    const fb=buildSolved(); for(let i=0;i<120;i++) reverseUnpour(fb); return fb;
+  }
+
+  function fitBoard(){
+    const count=App.state.tubes.length;
+    const rect=el.board.getBoundingClientRect();
+    const W=rect.width-16, H=rect.height-16;
+    let best={cols:4,w:42,h:100,score:0};
+    const minCols=3, maxCols=Math.min(8,count);
+    for(let cols=minCols;cols<=maxCols;cols++){
+      const rows=Math.ceil(count/cols), gap=8;
+      const wByW=(W-(cols-1)*gap)/cols;
+      const hByH=(H-(rows-1)*gap)/rows;
+      const w=Math.floor(Math.min(wByW,hByH/2.25));
+      const h=Math.floor(w*2.25);
+      if(w>best.score) best={cols,w,h,score:w};
+    }
+    const w=clamp(best.w,36,66), h=clamp(best.h,86,150);
+    el.grid.style.setProperty("--tube-w",w+"px");
+    el.grid.style.setProperty("--tube-h",h+"px");
+    el.grid.style.gridTemplateColumns=`repeat(${best.cols}, var(--tube-w))`;
+  }
+
+  function tubeEl(i){ return el.grid.querySelector(`.tube[data-i="${i}"]`); }
+
+  function paintCellColor(elm, color){
+    elm.style.background = `linear-gradient(180deg, ${lighten(color,18)}, ${color})`;
+  }
+  function lighten(hex,p){
+    const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;
+    const f=x=>Math.round(x+(255-x)*(p/100));
+    return `rgb(${f(r)},${f(g)},${f(b)})`;
+  }
+
+  function render(){
+    const s=App.state;
+    el.steps.textContent=s.steps;
+    el.time.textContent=fmt(s.elapsed);
+    el.diff.textContent=s.difficulty[0].toUpperCase()+s.difficulty.slice(1);
+    el.level.textContent=s.level;
+    el.undoBtn.disabled=!App.undo.length || s.locked;
+
+    const legal = new Set();
+    if(s.selected!==null){ for(let i=0;i<s.tubes.length;i++) if(canPour(s.selected,i)) legal.add(i); }
+
+    el.grid.innerHTML="";
+    s.tubes.forEach((tube,idx)=>{
+      const b=document.createElement("button");
+      b.className="tube";
+      b.dataset.i=idx;
+      if(s.selected===idx) b.classList.add("sel");
+      if(s.selected!==null && s.selected!==idx) b.classList.add(legal.has(idx)?"can":"no");
+      if(App.hint && App.hint.from===idx) b.classList.add("hintFrom");
+      if(App.hint && App.hint.to===idx) b.classList.add("hintTo");
+
+      const shell=document.createElement("div"); shell.className="shell";
+      const cells=document.createElement("div"); cells.className="cells";
+      cells.style.gridTemplateRows=`repeat(${s.capacity},1fr)`;
+
+      for(let r=s.capacity-1;r>=0;r--){
+        const c=document.createElement("div"); c.className="cell";
+        if(tube[r]!==undefined){ c.classList.add("fill"); paintCellColor(c,PALETTE[tube[r]%PALETTE.length]); }
+        cells.appendChild(c);
+      }
+      shell.appendChild(cells); b.appendChild(shell); el.grid.appendChild(b);
+      bindTubeEvents(b);
+    });
+    fitBoard();
+  }
+
+  function badFeedback(i){
+    const t=tubeEl(i); if(t){ t.classList.add("shake"); setTimeout(()=>t.classList.remove("shake"),320); }
+    sfx("bad"); vib(20);
+  }
+
+  async function animatePour(from,to){
+    const a=tubeEl(from), b=tubeEl(to);
+    if(!a||!b) return null;
+    const dir=a.getBoundingClientRect().left < b.getBoundingClientRect().left ? "tiltR":"tiltL";
+    a.classList.add(dir,"sel");
+    sfx("pour"); vib(10);
+    await sleep(170);
+    const m=doPour(from,to);
+    render();
+    await sleep(180);
+    return m;
+  }
+
+  async function attemptPour(from,to){
+    if(App.state.locked) return;
+    if(!canPour(from,to)){ badFeedback(to); return; }
+    App.state.locked=true;
+    const m=await animatePour(from,to);
+    if(m){
+      App.undo.push(m);
+      App.state.steps++;
+      App.state.selected=null;
+      App.state.solved=isSolved();
+      save();
+      if(App.state.solved){ sfx("win"); vib(40); confetti(); toast("完成！可到設定按下一關"); }
+    }
+    App.state.locked=false;
+    render();
+  }
+
+  function bindTubeEvents(node){
+    node.addEventListener("pointerdown", async e=>{
+      if(App.state.locked) return;
+      await audioUnlock();
+      const idx=Number(node.dataset.i);
+      App.drag={id:e.pointerId,startX:e.clientX,startY:e.clientY,hover:idx,active:false,just:false};
+      node.setPointerCapture(e.pointerId);
+
+      if(App.state.selected===null){
+        App.state.selected=idx; App.drag.just=true;
+        sfx("sel"); vib(8); render();
+      }
+      e.preventDefault();
+    });
+
+    node.addEventListener("pointermove", e=>{
+      const d=App.drag; if(!d || d.id!==e.pointerId || App.state.locked) return;
+      if(!d.active && Math.hypot(e.clientX-d.startX,e.clientY-d.startY)>8) d.active=true;
+      if(!d.active) return;
+      const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest(".tube");
+      if(hit) d.hover=Number(hit.dataset.i);
+    });
+
+    const up = async e=>{
+      const d=App.drag; if(!d || d.id!==e.pointerId) return;
+      const idx=Number(node.dataset.i);
+
+      if(d.active){
+        if(d.hover!==undefined && d.hover!==App.state.selected && canPour(App.state.selected,d.hover)) await attemptPour(App.state.selected,d.hover);
+        else if(d.hover!==undefined && d.hover!==App.state.selected) badFeedback(d.hover);
+      } else {
+        if(App.state.selected===idx){
+          if(!d.just){ App.state.selected=null; render(); }
+        } else if(App.state.selected!==null){
+          await attemptPour(App.state.selected, idx);
+        } else {
+          App.state.selected=idx; sfx("sel"); vib(8); render();
+        }
+      }
+      App.drag=null;
+    };
+    node.addEventListener("pointerup", up);
+    node.addEventListener("pointercancel", up);
+  }
+
+  function findHint(){
+    const moves=legalMoves(App.state.tubes,App.state.capacity);
+    if(!moves.length) return null;
+    moves.sort((a,b)=>{
+      const ta=App.state.tubes[a.to], tb=App.state.tubes[b.to];
+      const sa=App.state.tubes[a.from], sb=App.state.tubes[b.from];
+      const A=a.amount + (ta.length?2:0) + (sa.every(x=>x===sa[0])?1:0);
+      const B=b.amount + (tb.length?2:0) + (sb.every(x=>x===sb[0])?1:0);
+      return B-A;
+    });
+    return moves[0];
+  }
+
+  function obviousMove(){
+    const moves=legalMoves(App.state.tubes,App.state.capacity);
+    let best=null,score=-1;
+    for(const m of moves){
+      const f=App.state.tubes[m.from], t=App.state.tubes[m.to];
+      const mono=f.every(x=>x===f[0]), full=t.length+m.amount===App.state.capacity;
+      const s=(mono?3:0)+(t.length?2:0)+(full?3:0)+m.amount;
+      if(s>score){score=s;best=m;}
+    }
+    return score>=5?best:null;
+  }
+
+  async function autoFinish(){
+    if(App.state.locked) return;
+    let guard=80;
+    while(guard-- > 0 && !App.state.solved){
+      const m=obviousMove(); if(!m) break;
+      await attemptPour(m.from,m.to); await sleep(70);
     }
   }
 
-  // 保底：若極端情況失敗，回傳一個較輕打亂版本
-  const fallback = buildSolved();
-  for (let i = 0; i < 120; i++) doReverseUnpour(fallback);
-  return fallback;
-}
+  function newGame(resetLevel=true){
+    App.state.selected=null; App.state.steps=0; App.state.elapsed=0; App.state.solved=false; App.undo=[]; App.hint=null;
+    if(resetLevel) App.state.level=1;
+    App.state.tubes=generateLevel(App.state.difficulty);
+    App.initSnap=copyTubes(App.state.tubes);
+    save(); render();
+  }
+  function nextLevel(){
+    App.state.level++; App.state.steps=0; App.state.elapsed=0; App.state.selected=null; App.state.solved=false; App.undo=[]; App.hint=null;
+    App.state.tubes=generateLevel(App.state.difficulty);
+    App.initSnap=copyTubes(App.state.tubes);
+    save(); render();
+  }
+  function resetLevel(){
+    if(!App.initSnap) return;
+    App.state.tubes=copyTubes(App.initSnap);
+    App.state.steps=0; App.state.elapsed=0; App.state.selected=null; App.state.solved=false; App.undo=[];
+    save(); render(); toast("已重置本關");
+  }
 
+  function save(){
+    try{
+      localStorage.setItem(KEY, JSON.stringify({
+        v:2, state:App.state, settings:App.settings, undo:App.undo, init:App.initSnap
+      }));
+    }catch(_){}
+  }
+  function load(){
+    try{
+      const raw=localStorage.getItem(KEY); if(!raw) return false;
+      const d=JSON.parse(raw); if(!d||d.v!==2) return false;
+      if(!Array.isArray(d.state?.tubes)) return false;
+      App.state.capacity=d.state.capacity===5?5:4;
+      App.state.difficulty=["easy","normal","hard"].includes(d.state.difficulty)?d.state.difficulty:"normal";
+      App.state.level=Math.max(1,Number(d.state.level)||1);
+      App.state.steps=Math.max(0,Number(d.state.steps)||0);
+      App.state.elapsed=Math.max(0,Number(d.state.elapsed)||0);
+      App.state.selected=null; App.state.locked=false; App.state.solved=!!d.state.solved;
+      App.state.tubes=d.state.tubes.map(t=>t.slice(0,App.state.capacity));
+      App.settings.sound=d.settings?.sound!==false;
+      App.settings.vibrate=d.settings?.vibrate!==false;
+      App.settings.theme=d.settings?.theme==="blue"?"blue":"dark";
+      App.undo=Array.isArray(d.undo)?d.undo:[];
+      App.initSnap=Array.isArray(d.init)?d.init.map(t=>t.slice()):copyTubes(App.state.tubes);
+      return true;
+    }catch(_){ return false; }
+  }
 
-      function tubeEl(index) {
-        return App.el.tubeGrid.querySelector(`.tube[data-idx="${index}"]`);
+  function applyTheme(){
+    if(App.settings.theme==="blue"){
+      document.documentElement.style.setProperty("--bg","#0f1728");
+      document.documentElement.style.setProperty("--panel","#15243d");
+      document.documentElement.style.setProperty("--panel2","#1a3155");
+    }else{
+      document.documentElement.style.setProperty("--bg","#14171e");
+      document.documentElement.style.setProperty("--panel","#1c2130");
+      document.documentElement.style.setProperty("--panel2","#232a3d");
+    }
+  }
+
+  function confetti(){
+    const c=el.fx, ctx=c.getContext("2d");
+    const dpr=window.devicePixelRatio||1;
+    c.width=innerWidth*dpr; c.height=innerHeight*dpr; c.style.width=innerWidth+"px"; c.style.height=innerHeight+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    for(let i=0;i<90;i++){
+      const a=Math.random()*Math.PI*2, v=1.5+Math.random()*3;
+      App.fx.push({x:innerWidth/2+(Math.random()-0.5)*80,y:innerHeight*0.3+(Math.random()-0.5)*40,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2.4,life:70+Math.random()*40,size:2+Math.random()*3,col:PALETTE[Math.floor(Math.random()*PALETTE.length)]});
+    }
+    if(App.fxRun) return;
+    App.fxRun=true;
+    (function tick(){
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      App.fx=App.fx.filter(p=>p.life>0);
+      for(const p of App.fx){
+        p.life--; p.vy+=0.05; p.x+=p.vx; p.y+=p.vy;
+        ctx.globalAlpha=Math.max(0,p.life/110);
+        ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
       }
-
-      function render() {
-        const { tubes, capacity, selected, locked } = App.state;
-        App.el.steps.textContent = String(App.state.steps);
-        App.el.time.textContent = formatTime(App.state.elapsed);
-        App.el.level.textContent = String(App.state.level);
-        App.el.difficultyText.textContent = App.state.difficulty[0].toUpperCase() + App.state.difficulty.slice(1);
-
-        App.el.undoBtn.disabled = App.undoStack.length === 0 || locked;
-        App.el.hintBtn.disabled = locked;
-        App.el.autoBtn.disabled = locked;
-        App.el.nextBtn.disabled = !App.state.solved || locked;
-        App.el.resetBtn.disabled = locked;
-
-        App.el.tubeGrid.innerHTML = "";
-        const legalTargets = new Set();
-        if (selected !== null) {
-          for (let i = 0; i < tubes.length; i++) if (canPour(selected, i)) legalTargets.add(i);
-        }
-
-        tubes.forEach((tube, idx) => {
-          const b = document.createElement("button");
-          b.type = "button";
-          b.className = "tube";
-          b.dataset.idx = String(idx);
-          b.ariaLabel = `試管 ${idx + 1}`;
-          b.ariaDisabled = locked ? "true" : "false";
-
-          if (selected === idx) b.classList.add("selected");
-          if (selected !== null && selected !== idx) b.classList.add(legalTargets.has(idx) ? "can-target" : "cannot-target");
-          if (App.hintPair && App.hintPair.from === idx) b.classList.add("hint-from");
-          if (App.hintPair && App.hintPair.to === idx) b.classList.add("hint-to");
-
-          const shell = document.createElement("div");
-          shell.className = "tube-shell";
-          const cells = document.createElement("div");
-          cells.className = "cells";
-          cells.style.gridTemplateRows = `repeat(${capacity}, 1fr)`;
-
-          for (let r = capacity - 1; r >= 0; r--) {
-            const cell = document.createElement("div");
-            cell.className = "cell";
-            const v = tube[r];
-            if (v !== undefined) {
-              cell.classList.add("filled");
-              if (r === tube.length - 1) cell.classList.add("top");
-              cell.style.setProperty("--paint", PALETTE[v % PALETTE.length]);
-            }
-            cells.appendChild(cell);
-          }
-
-          shell.appendChild(cells);
-          b.appendChild(shell);
-          bindTubePointerEvents(b);
-          App.el.tubeGrid.appendChild(b);
-        });
-      }
-
-      function invalidFeedback(targetIdx) {
-        const el = tubeEl(targetIdx);
-        if (el) {
-          el.classList.add("shake");
-          setTimeout(() => el.classList.remove("shake"), 360);
-        }
-        playSound("invalid");
-        vibrate(22);
-      }
-
-      async function animatePour(fromIdx, toIdx) {
-        const fromEl = tubeEl(fromIdx);
-        const toEl = tubeEl(toIdx);
-        if (!fromEl || !toEl) return null;
-
-        const fr = fromEl.getBoundingClientRect();
-        const tr = toEl.getBoundingClientRect();
-        const dir = fr.left < tr.left ? "tilt-right" : "tilt-left";
-        fromEl.classList.add("selected", dir);
-
-        playSound("pour");
-        vibrate(12);
-
-        await sleep(220);
-        const move = doPour(fromIdx, toIdx);
-        render();
-        await sleep(240);
-        return move;
-      }
-
-      async function attemptPour(fromIdx, toIdx) {
-        if (App.state.locked) return;
-        if (!canPour(fromIdx, toIdx)) {
-          invalidFeedback(toIdx);
-          return;
-        }
-
-        App.state.locked = true;
-        const move = await animatePour(fromIdx, toIdx);
-        if (move) {
-          App.undoStack.push(move);
-          App.state.steps++;
-          App.state.selected = null;
-          App.state.solved = isSolved();
-          saveGame();
-          if (App.state.solved) onSolved();
-        }
-        App.state.locked = false;
-        render();
-      }
-
-      function bindTubePointerEvents(el) {
-        el.addEventListener("pointerdown", async (e) => {
-          if (App.state.locked) return;
-          await unlockAudio();
-          const idx = Number(el.dataset.idx);
-
-          App.drag = {
-            pointerId: e.pointerId,
-            originIdx: idx,
-            hoverIdx: idx,
-            startX: e.clientX,
-            startY: e.clientY,
-            active: false,
-            justSelected: false,
-            proxy: null
-          };
-
-          el.setPointerCapture(e.pointerId);
-
-          if (App.state.selected === null) {
-            App.state.selected = idx;
-            App.drag.justSelected = true;
-            playSound("select");
-            vibrate(8);
-            render();
-          }
-          e.preventDefault();
-        });
-
-        el.addEventListener("pointermove", (e) => {
-          const d = App.drag;
-          if (!d || d.pointerId !== e.pointerId || App.state.locked) return;
-          const dx = e.clientX - d.startX;
-          const dy = e.clientY - d.startY;
-          if (!d.active && Math.hypot(dx, dy) > 9 && App.state.selected === d.originIdx) {
-            d.active = true;
-            d.proxy = createDragProxy(d.originIdx);
-          }
-          if (!d.active) return;
-
-          moveDragProxy(d.proxy, e.clientX, e.clientY);
-          const target = document.elementFromPoint(e.clientX, e.clientY)?.closest(".tube");
-          clearDropHover();
-          if (target) {
-            const hover = Number(target.dataset.idx);
-            d.hoverIdx = hover;
-            if (canPour(App.state.selected, hover)) target.classList.add("drop-hover");
-          }
-        });
-
-        const onUp = async (e) => {
-          const d = App.drag;
-          if (!d || d.pointerId !== e.pointerId) return;
-          if (d.proxy) d.proxy.remove();
-          clearDropHover();
-
-          const idx = Number(el.dataset.idx);
-          if (d.active) {
-            if (d.hoverIdx !== undefined && d.hoverIdx !== App.state.selected && canPour(App.state.selected, d.hoverIdx)) {
-              await attemptPour(App.state.selected, d.hoverIdx);
-            } else if (d.hoverIdx !== undefined && d.hoverIdx !== App.state.selected) {
-              invalidFeedback(d.hoverIdx);
-            }
-          } else {
-            if (App.state.selected === idx) {
-              if (!d.justSelected) {
-                App.state.selected = null;
-                render();
-              }
-            } else if (App.state.selected !== null) {
-              await attemptPour(App.state.selected, idx);
-            } else {
-              App.state.selected = idx;
-              playSound("select");
-              vibrate(8);
-              render();
-            }
-          }
-
-          App.drag = null;
-        };
-
-        el.addEventListener("pointerup", onUp);
-        el.addEventListener("pointercancel", onUp);
-      }
-
-      function createDragProxy(idx) {
-        const proxy = document.createElement("div");
-        proxy.className = "drag-proxy";
-        proxy.innerHTML = `<div class="tube-shell"></div>`;
-        document.body.appendChild(proxy);
-        return proxy;
-      }
-
-      function moveDragProxy(proxy, x, y) {
-        if (!proxy) return;
-        proxy.style.left = `${x}px`;
-        proxy.style.top = `${y}px`;
-      }
-
-      function clearDropHover() {
-        App.el.tubeGrid.querySelectorAll(".tube.drop-hover").forEach(t => t.classList.remove("drop-hover"));
-      }
-
-      function findHintMove() {
-        const moves = allLegalMoves(App.state.tubes, App.state.capacity);
-        if (!moves.length) return null;
-        moves.sort((a, b) => {
-          const ta = App.state.tubes[a.to];
-          const tb = App.state.tubes[b.to];
-          const sa = App.state.tubes[a.from];
-          const sb = App.state.tubes[b.from];
-          const scoreA = a.amount + (ta.length > 0 ? 2 : 0) + (sa.every(v => v === sa[0]) ? 1 : 0);
-          const scoreB = b.amount + (tb.length > 0 ? 2 : 0) + (sb.every(v => v === sb[0]) ? 1 : 0);
-          return scoreB - scoreA;
-        });
-        return moves[0];
-      }
-
-      function obviousMove() {
-        const moves = allLegalMoves(App.state.tubes, App.state.capacity);
-        let best = null;
-        let bestScore = -1;
-        for (const m of moves) {
-          const from = App.state.tubes[m.from];
-          const to = App.state.tubes[m.to];
-          const mono = from.every(c => c === from[0]);
-          const fillsToFull = to.length + m.amount === App.state.capacity;
-          const score = (mono ? 3 : 0) + (to.length > 0 ? 2 : 0) + (fillsToFull ? 3 : 0) + m.amount;
-          if (score > bestScore) {
-            bestScore = score;
-            best = m;
-          }
-        }
-        return bestScore >= 5 ? best : null;
-      }
-
-      function startNewGame({ keepLevel = false } = {}) {
-        App.state.selected = null;
-        App.state.steps = 0;
-        App.state.elapsed = 0;
-        App.undoStack = [];
-        App.hintPair = null;
-        App.state.solved = false;
-        if (!keepLevel) App.state.level = 1;
-        App.state.tubes = generateLevel(App.state.difficulty);
-        App.initialLevelSnapshot = deepCopyTubes(App.state.tubes);
-        saveGame();
-        render();
-      }
-
-      function nextLevel() {
-        App.state.level++;
-        App.state.selected = null;
-        App.state.steps = 0;
-        App.state.elapsed = 0;
-        App.undoStack = [];
-        App.hintPair = null;
-        App.state.solved = false;
-        App.state.tubes = generateLevel(App.state.difficulty);
-        App.initialLevelSnapshot = deepCopyTubes(App.state.tubes);
-        saveGame();
-        render();
-      }
-
-      function resetCurrentLevel() {
-        if (!App.initialLevelSnapshot) return;
-        App.state.tubes = deepCopyTubes(App.initialLevelSnapshot);
-        App.undoStack = [];
-        App.state.steps = 0;
-        App.state.elapsed = 0;
-        App.state.selected = null;
-        App.state.solved = false;
-        saveGame();
-        render();
-        showToast("已重置本關");
-      }
-
-      function onSolved() {
-        playSound("win");
-        vibrate(40);
-        launchParticles();
-        showToast("完成！可按「下一關」");
-      }
-
-      async function doUndo() {
-        if (App.state.locked || !App.undoStack.length) return;
-        const mv = App.undoStack.pop();
-        undoMove(mv);
-        App.state.steps = Math.max(0, App.state.steps - 1);
-        App.state.solved = false;
-        App.state.selected = null;
-        saveGame();
-        render();
-        playSound("select");
-      }
-
-      async function doHint() {
-        if (App.state.locked) return;
-        const h = findHintMove();
-        if (!h) {
-          showToast("目前沒有可用提示");
-          playSound("invalid");
-          return;
-        }
-        App.hintPair = { from: h.from, to: h.to };
-        render();
-        playSound("select");
-        vibrate(12);
-        showToast(`提示：${h.from + 1} → ${h.to + 1}`);
-        setTimeout(() => {
-          App.hintPair = null;
-          render();
-        }, 1500);
-      }
-
-      async function autoFinish() {
-        if (App.state.locked) return;
-        let guard = 60;
-        while (guard-- > 0 && !App.state.solved) {
-          const m = obviousMove();
-          if (!m) break;
-          await attemptPour(m.from, m.to);
-          await sleep(80);
-        }
-      }
-
-      function saveGame() {
-        const data = {
-          v: 1,
-          state: App.state,
-          settings: App.settings,
-          undoStack: App.undoStack,
-          initial: App.initialLevelSnapshot
-        };
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
-      }
-
-      function loadGame() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return false;
-          const data = JSON.parse(raw);
-          if (!data || data.v !== 1) return false;
-
-          const s = data.state;
-          if (!s || !Array.isArray(s.tubes)) return false;
-          if (!s.tubes.every(t => Array.isArray(t))) return false;
-
-          App.state.capacity = (s.capacity === 5 ? 5 : 4);
-          App.state.difficulty = ["easy", "normal", "hard"].includes(s.difficulty) ? s.difficulty : "normal";
-          App.state.level = Math.max(1, Number(s.level) || 1);
-          App.state.steps = Math.max(0, Number(s.steps) || 0);
-          App.state.elapsed = Math.max(0, Number(s.elapsed) || 0);
-          App.state.selected = null;
-          App.state.locked = false;
-          App.state.solved = !!s.solved;
-          App.state.tubes = s.tubes.map(t => t.slice(0, App.state.capacity));
-
-          App.settings.sound = data.settings?.sound !== false;
-          App.settings.vibrate = data.settings?.vibrate !== false;
-          App.settings.theme = ["ocean", "violet", "night"].includes(data.settings?.theme) ? data.settings.theme : "ocean";
-
-          App.undoStack = Array.isArray(data.undoStack) ? data.undoStack : [];
-          App.initialLevelSnapshot = Array.isArray(data.initial) ? data.initial.map(t => t.slice()) : deepCopyTubes(App.state.tubes);
-
-          return true;
-        } catch (_) {
-          return false;
-        }
-      }
-
-      function initFx() {
-        App.fx.canvas = document.getElementById("fxCanvas");
-        App.fx.ctx = App.fx.canvas.getContext("2d");
-        const resize = () => {
-          App.fx.canvas.width = window.innerWidth * devicePixelRatio;
-          App.fx.canvas.height = window.innerHeight * devicePixelRatio;
-          App.fx.canvas.style.width = window.innerWidth + "px";
-          App.fx.canvas.style.height = window.innerHeight + "px";
-          App.fx.ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-        };
-        window.addEventListener("resize", resize);
-        resize();
-      }
-
-      function launchParticles() {
-        const cx = window.innerWidth / 2;
-        const cy = window.innerHeight * 0.33;
-        for (let i = 0; i < 110; i++) {
-          const a = Math.random() * Math.PI * 2;
-          const s = 1.4 + Math.random() * 3.2;
-          App.fx.particles.push({
-            x: cx + (Math.random() - 0.5) * 80,
-            y: cy + (Math.random() - 0.5) * 40,
-            vx: Math.cos(a) * s,
-            vy: Math.sin(a) * s - 2.8,
-            life: 80 + Math.random() * 50,
-            color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-            size: 2 + Math.random() * 4,
-            alpha: 0.9
-          });
-        }
-        if (!App.fx.running) runFx();
-      }
-
-      function runFx() {
-        App.fx.running = true;
-        const ctx = App.fx.ctx;
-        const step = () => {
-          ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-          App.fx.particles = App.fx.particles.filter(p => p.life > 0);
-          for (const p of App.fx.particles) {
-            p.life--;
-            p.vy += 0.05;
-            p.x += p.vx;
-            p.y += p.vy;
-            p.alpha = Math.max(0, p.life / 120);
-            ctx.globalAlpha = p.alpha;
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          ctx.globalAlpha = 1;
-          if (App.fx.particles.length) requestAnimationFrame(step);
-          else App.fx.running = false;
-        };
-        requestAnimationFrame(step);
-      }
-
-      function bindUI() {
-        App.el = {
-          tubeGrid: document.getElementById("tubeGrid"),
-          steps: document.getElementById("steps"),
-          time: document.getElementById("time"),
-          difficultyText: document.getElementById("difficultyText"),
-          level: document.getElementById("level"),
-          newGameBtn: document.getElementById("newGameBtn"),
-          nextBtn: document.getElementById("nextBtn"),
-          undoBtn: document.getElementById("undoBtn"),
-          hintBtn: document.getElementById("hintBtn"),
-          autoBtn: document.getElementById("autoBtn"),
-          resetBtn: document.getElementById("resetBtn"),
-          difficultySelect: document.getElementById("difficultySelect"),
-          capacitySelect: document.getElementById("capacitySelect"),
-          themeSelect: document.getElementById("themeSelect"),
-          soundToggle: document.getElementById("soundToggle"),
-          vibrateToggle: document.getElementById("vibrateToggle"),
-          toast: document.getElementById("toast")
-        };
-
-        App.el.newGameBtn.addEventListener("click", async () => {
-          await unlockAudio();
-          startNewGame({ keepLevel: false });
-        });
-        App.el.nextBtn.addEventListener("click", async () => {
-          await unlockAudio();
-          if (!App.state.solved) return;
-          nextLevel();
-        });
-        App.el.undoBtn.addEventListener("click", doUndo);
-        App.el.hintBtn.addEventListener("click", doHint);
-        App.el.autoBtn.addEventListener("click", autoFinish);
-        App.el.resetBtn.addEventListener("click", resetCurrentLevel);
-
-        App.el.difficultySelect.addEventListener("change", () => {
-          App.state.difficulty = App.el.difficultySelect.value;
-          startNewGame({ keepLevel: false });
-        });
-
-        App.el.capacitySelect.addEventListener("change", () => {
-          App.state.capacity = Number(App.el.capacitySelect.value) === 5 ? 5 : 4;
-          startNewGame({ keepLevel: false });
-        });
-
-        App.el.themeSelect.addEventListener("change", () => {
-          App.settings.theme = App.el.themeSelect.value;
-          document.body.dataset.theme = App.settings.theme;
-          saveGame();
-        });
-
-        App.el.soundToggle.addEventListener("change", () => {
-          App.settings.sound = App.el.soundToggle.checked;
-          saveGame();
-        });
-
-        App.el.vibrateToggle.addEventListener("change", () => {
-          App.settings.vibrate = App.el.vibrateToggle.checked;
-          saveGame();
-        });
-
-        document.addEventListener("pointerdown", unlockAudio, { passive: true, once: false });
-      }
-
-      function startTimer() {
-        clearInterval(App.timerId);
-        App.timerId = setInterval(() => {
-          if (!App.state.solved && !App.state.locked) {
-            App.state.elapsed++;
-            App.el.time.textContent = formatTime(App.state.elapsed);
-            App.saveTick++;
-            if (App.saveTick % 3 === 0) saveGame();
-          }
-        }, 1000);
-      }
-
-      function syncUIFromState() {
-        App.el.difficultySelect.value = App.state.difficulty;
-        App.el.capacitySelect.value = String(App.state.capacity);
-        App.el.themeSelect.value = App.settings.theme;
-        App.el.soundToggle.checked = App.settings.sound;
-        App.el.vibrateToggle.checked = App.settings.vibrate;
-        document.body.dataset.theme = App.settings.theme;
-      }
-
-      function init() {
-        bindUI();
-        initFx();
-
-        const hasSave = loadGame();
-        if (!hasSave) {
-          App.state.difficulty = "normal";
-          App.state.capacity = 4;
-          App.state.level = 1;
-          startNewGame({ keepLevel: true });
-        }
-
-        syncUIFromState();
-        render();
-        startTimer();
-      }
-
-      init();
-
-      window.canPour = canPour;
-      window.getTopRunLength = getTopRunLength;
-      window.doPour = doPour;
-      window.undoMove = undoMove;
-      window.isSolved = isSolved;
-      window.generateLevel = generateLevel;
+      ctx.globalAlpha=1;
+      if(App.fx.length) requestAnimationFrame(tick); else App.fxRun=false;
     })();
-  </script>
+  }
+
+  function bindUI(){
+    el.newBtn.onclick=async()=>{ await audioUnlock(); newGame(true); };
+    el.undoBtn.onclick=()=>{ if(App.state.locked||!App.undo.length) return; const m=App.undo.pop(); undoMove(m); App.state.steps=Math.max(0,App.state.steps-1); App.state.selected=null; App.state.solved=false; save(); render(); };
+    el.hintBtn.onclick=()=>{
+      if(App.state.locked) return;
+      const h=findHint();
+      if(!h){ toast("沒有可用提示"); sfx("bad"); return; }
+      App.hint={from:h.from,to:h.to}; render(); sfx("sel"); vib(12); toast(`提示：${h.from+1} → ${h.to+1}`);
+      setTimeout(()=>{App.hint=null; render();},1400);
+    };
+    el.setBtn.onclick=()=>{ el.modal.classList.add("show"); };
+    el.closeBtn.onclick=()=>{ el.modal.classList.remove("show"); save(); };
+    el.modal.addEventListener("click",e=>{ if(e.target===el.modal) el.modal.classList.remove("show"); });
+
+    el.diffSel.onchange=()=>{ App.state.difficulty=el.diffSel.value; newGame(true); };
+    el.capSel.onchange=()=>{ App.state.capacity=Number(el.capSel.value)===5?5:4; newGame(true); };
+    el.themeSel.onchange=()=>{ App.settings.theme=el.themeSel.value; applyTheme(); save(); };
+    el.soundChk.onchange=()=>{ App.settings.sound=el.soundChk.checked; save(); };
+    el.vibChk.onchange=()=>{ App.settings.vibrate=el.vibChk.checked; save(); };
+    el.nextBtn.onclick=()=>{ if(!App.state.solved){ toast("先完成本關"); return; } nextLevel(); };
+    el.autoBtn.onclick=autoFinish;
+    el.resetBtn.onclick=resetLevel;
+
+    window.addEventListener("resize", fitBoard);
+    document.addEventListener("pointerdown", audioUnlock, {passive:true});
+  }
+
+  function syncUI(){
+    el.diffSel.value=App.state.difficulty;
+    el.capSel.value=String(App.state.capacity);
+    el.themeSel.value=App.settings.theme;
+    el.soundChk.checked=App.settings.sound;
+    el.vibChk.checked=App.settings.vibrate;
+    applyTheme();
+  }
+
+  function startTimer(){
+    clearInterval(App.timer);
+    App.timer=setInterval(()=>{ if(!App.state.solved && !App.state.locked){ App.state.elapsed++; el.time.textContent=fmt(App.state.elapsed); if(App.state.elapsed%3===0) save(); }},1000);
+  }
+
+  function init(){
+    bindUI();
+    const ok=load();
+    if(!ok){ App.state.difficulty="normal"; App.state.capacity=4; App.state.level=1; newGame(false); }
+    syncUI();
+    render();
+    startTimer();
+  }
+
+  init();
+
+  window.canPour=canPour;
+  window.getTopRunLength=getTopRunLength;
+  window.doPour=doPour;
+  window.undoMove=undoMove;
+  window.isSolved=isSolved;
+  window.generateLevel=generateLevel;
+})();
+</script>
 </body>
 </html>
