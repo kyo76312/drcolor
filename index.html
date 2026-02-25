@@ -272,6 +272,9 @@ GitHub Pages：將此檔放到 repo 根目錄（index.html）即可直接執行
   </div>
 
   <script>
+   
+const BUILD_VERSION = "v2026.2.25";
+
     (() => {
       "use strict";
 
@@ -1164,9 +1167,23 @@ app.el.restartBtn.addEventListener("click", () => {
       window.isSolved = isSolved;
       window.generateLevel = generateLevel;
     })();
+
+window.addEventListener("load", () => {
+    const versionEl = document.createElement("div");
+    versionEl.textContent = BUILD_VERSION;
+    versionEl.style.position = "fixed";
+    versionEl.style.bottom = "6px";
+    versionEl.style.right = "8px";
+    versionEl.style.fontSize = "12px";
+    versionEl.style.opacity = "0.5";
+    versionEl.style.pointerEvents = "none";
+    document.body.appendChild(versionEl);
+});
+    
   </script>
 </body>
 </html>
+
 
 
 
